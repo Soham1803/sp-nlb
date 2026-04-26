@@ -10,6 +10,8 @@ use crate::state::{Backend, State, SharedState};
 use crate::health::run_health_checker;
 use crate::passthrough::run_passthrough_nlb;
 
+use std::collections::HashMap;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing for logging
@@ -28,6 +30,7 @@ async fn main() -> anyhow::Result<()> {
             },
         ],
         next_backend: 0,
+        connections: HashMap::new(),
     }));
 
     // Phase 2: Spawn health checker

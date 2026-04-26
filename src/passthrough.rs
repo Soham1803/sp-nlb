@@ -5,7 +5,7 @@ use pnet::packet::ethernet::{EtherTypes, EthernetPacket, MutableEthernetPacket};
 use pnet::packet::ipv4::{Ipv4Packet, MutableIpv4Packet, checksum as ipv4_checksum};
 use pnet::packet::tcp::{TcpPacket, MutableTcpPacket, ipv4_checksum as tcp_ipv4_checksum};
 use pnet::packet::Packet;
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 
 pub fn run_passthrough_nlb(interface_name: &str, target_port: u16, state: SharedState) -> anyhow::Result<()> {
     let interfaces = datalink::interfaces();
@@ -30,12 +30,12 @@ pub fn run_passthrough_nlb(interface_name: &str, target_port: u16, state: Shared
             if let Some(ipv4_packet) = Ipv4Packet::new(eth_packet.payload()) {
                 if let Some(tcp_packet) = TcpPacket::new(ipv4_packet.payload()) {
                     if tcp_packet.get_destination() == target_port {
+                        let client_addr = SocketAddr::new(IpAddr::V4(ipv4_packet.get_source()), tcp_packet.get_source());
                         
-                        // 1. Pick a backend
+                        // 1. Get or assign a backend for this connection
                         let backend_addr = {
-                            // We need a block here to drop the lock immediately
                             let mut guard = futures::executor::block_on(state.write());
-                            guard.next_backend_addr()
+                            guard.get_or_assign_backend(client_addr)
                         };
 
                         if let Some(backend_addr) = backend_addr {
