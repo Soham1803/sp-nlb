@@ -1,0 +1,13 @@
+[package]
+name = "sp_nlb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# The async runtime
+tokio = { version = "1", features = ["full"] }
+# For easy error handling
+anyhow = "1.0"
+# For logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
