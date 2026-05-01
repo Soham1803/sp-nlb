@@ -12,7 +12,7 @@ pub async fn run_health_checker(state: SharedState) {
         
         // We take a read lock first to get the list of backends
         let backends: Vec<(usize, SocketAddr)> = {
-            let state_guard = state.read().await;
+            let state_guard = state.read().expect("Failed to acquire read lock");
             state_guard.backends.iter()
                 .enumerate()
                 .map(|(i, b)| (i, b.addr))
@@ -23,7 +23,7 @@ pub async fn run_health_checker(state: SharedState) {
             let is_healthy = check_backend(addr).await;
             
             // Only take a write lock if the status has actually changed
-            let mut state_guard = state.write().await;
+            let mut state_guard = state.write().expect("Failed to acquire write lock");
             if state_guard.backends[idx].is_healthy != is_healthy {
                 state_guard.backends[idx].is_healthy = is_healthy;
 

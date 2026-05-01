@@ -4,7 +4,7 @@ use tokio::net::TcpStream;
 pub async fn handle_connection(mut client_stream: TcpStream, state: SharedState) -> anyhow::Result<()> {
     // Select a backend
     let backend_addr = {
-        let mut state_guard = state.write().await;
+        let mut state_guard = state.write().expect("Failed to acquire write lock");
         state_guard.next_backend_addr()
     };
 
